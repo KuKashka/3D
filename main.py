@@ -1,12 +1,17 @@
 from ursina import *
+from ursina.prefabs.first_person_controller import FirstPersonController
 
 app = Ursina()
 
-block = Entity(model='cube', texture='grass', position=(0,0,0), rotation=(45,0,0), skale=2.7)
-block2 = Entity(model='cube', texture='grass', position=(2,0,0), rotation=(0,40,0))
-block3 = Entity(model='cube', texture='grass', position=(2,2,-6), rotation=(0,0,46))
-block.x = 3.4
-EditorCamera()
+sky=Sky(texture='sky_sunset')
+
+ground=Entity(model='plane', collider='box', scale=1000, texture='grass', texture_scale=(4,4),position=(0,-2,0))
+
+player = FirstPersonController()
+
+block = Entity(model='cube', texture='grass', position=(0,0,0), rotation=(0,0,0), skale=2.7)
+
+
 
 
 app.run()
