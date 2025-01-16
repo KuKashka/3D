@@ -1,17 +1,17 @@
 from ursina import *
 from ursina.prefabs.first_person_controller import FirstPersonController
+from models import *
 
 app = Ursina()
 
 sky=Sky(texture='sky_sunset')
 
-ground=Entity(model='plane', collider='box', scale=1000, texture='grass', texture_scale=(4,4),position=(0,-2,0))
 
-player = FirstPersonController()
-
-block = Entity(model='cube', texture='grass', position=(0,0,0), rotation=(0,0,0), skale=2.7)
+map = Map()
+map.new_map()
 
 
+player = FirstPersonController(speed = 13, jump_height=3)
 
 
 app.run()
