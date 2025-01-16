@@ -27,8 +27,8 @@ class Map(Entity):
             self.noise = PerlinNoise(octaves = 3, seed=4522)
 
     def new_map(self):
-        for x in range(50):
-            for z in range(50):
+        for x in range(20):
+            for z in range(20):
                 y = floor(self.noise([x/24, z/24])*6)
                 block = Block(0, (x,y,z))
 
