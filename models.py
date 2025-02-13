@@ -3,6 +3,7 @@ from perlin_noise import PerlinNoise
 from ursina.shaders import basic_lighting_shader
 from numpy import floor
 from ursina.prefabs.first_person_controller import FirstPersonController
+import pickle
 
 
 import os
@@ -21,7 +22,7 @@ for image in file_list:
 class Tree(Button):
     current = 0
     def __init__(self, pos,**kwargs):
-            super().__init__(
+        super().__init__(
             parent=scene,
             model='assets/minecraft_tree/scene.gltf',
             position=pos,
@@ -32,10 +33,11 @@ class Tree(Button):
             shader=basic_lighting_shader,
             **kwargs
         )
+        scene.trees[(self.x,self.y,self.z)] = self
 
 class Flower(Button):
     def __init__(self, pos,**kwargs):
-            super().__init__(
+        super().__init__(
             parent=scene,
             model='assets/minecraft-poppy-flower/scene.gltf',
             position=pos,
@@ -46,11 +48,12 @@ class Flower(Button):
             shader=basic_lighting_shader,
             **kwargs
         )
+        scene.flowers[(self.x,self.y,self.z)] = self
 
 class Block(Button):
     current = 0
     def __init__(self, block_type, pos,**kwargs):
-            super().__init__(
+        super().__init__(
             parent=scene,
             model='cube',
             texture=block_textures[block_type],
@@ -62,15 +65,20 @@ class Block(Button):
             shader=basic_lighting_shader,
             **kwargs
         )
-
+        self.id = block_type
+        scene.blocks[(self.x,self.y,self.z)] = self
 
 
 class Map(Entity):
     def __init__(self, **kwargs):
             super().__init__(model=None, Collider=None, **kwargs)
             self.bedrock = Entity(model='plane', collider='box', scale=1000, texture='grass', texture_scale=(4,4),position=(0,-2,0))
-            self.blocks = {}
+            scene.blocks = {}
+            scene.trees = {}
+            scene.flowers = {}
+
             self.noise = PerlinNoise(octaves = 3, seed=4522)
+            self.player = Player(speed = 13, jump_height=3)
 
     def new_map(self, size=30):
         for x in range(50):
@@ -85,6 +93,41 @@ class Map(Entity):
                 rand_num = random.randint(1, 50)
                 if rand_num == 21:
                      Flower((x,y+1,z))
+
+    def save(self):
+        game_data = {
+            "player pos": (self.player.x, self.player.y, self.player.z),
+            "blocks": [],
+            "trees": [],
+            "flowers": [] 
+         }
+
+        for block_pos, block in scene.blocks.items():
+            game_data["blocks"].append((block_pos, block.id))
+
+        for tree_pos, tree in scene.trees.items():
+            game_data["trees"].append(tree_pos)
+
+        for flower_pos, flower in scene.flowers.items():
+            game_data["flowers"].append(flower_pos)
+
+        with open("save.dat", "wb") as f:
+            pickle.dump(game_data, f)
+
+    def load(self):
+        with open("save.dat", "rb") as f:
+            game_data = pickle.load(f)
+            for block_pos, block_id in game_data["blocks"]:
+                Block(block_id, block_pos)
+            for tree_pos in game_data["trees"]:
+                Tree(tree_pos)
+            for flower_pos in game_data["trees"]:
+                Flower(flower_pos)
+            self.player.position = game_data["player pos"]
+
+    def input(self, key):
+        if key == "i":
+            self.save()
 
 class Player(FirstPersonController):
     def __init__(self, **kwargs):
